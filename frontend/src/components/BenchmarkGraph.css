@@ -1,0 +1,58 @@
+/* Basic styling for the BenchmarkGraph component */
+
+.benchmark-graph-container {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.graph-controls {
+  display: flex;
+  gap: 20px; /* Space between dropdown containers */
+  margin-bottom: 15px;
+  align-items: center;
+  flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
+}
+
+.graph-controls div { /* Style for individual control containers */
+  display: flex;
+  flex-direction: column; /* Stack label and select vertically */
+}
+
+.graph-controls label {
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.graph-controls select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  min-width: 200px; /* Minimum width for selects */
+  font-size: 0.9em;
+}
+
+/* Styling for the div that will contain the three.js canvas */
+.graph-canvas-container {
+  width: 100%;
+  height: 600px; /* Default height, can be overridden by inline style if needed */
+  border: 1px solid #ccc;
+  background-color: #f0f0f0; /* Fallback if scene background isn't set */
+  border-radius: 4px; /* Consistent with the main container */
+  margin-top: 10px; /* Space above canvas if controls are above */
+}
+
+/* Placeholder message styling */
+.graph-canvas-container p {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #777;
+  font-style: italic;
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import BenchmarkTable from './components/BenchmarkTable';
 import FilterControls from './components/FilterControls';
+import BenchmarkGraph from './components/BenchmarkGraph'; // Import BenchmarkGraph
 // import './style.css'; // Will be handled in styling step
 
 // Helper to get nested values from an object based on a dot-separated path string
@@ -105,7 +106,10 @@ function App() {
       <h1>Computer Vision Algorithm Benchmarks (React)</h1>
       <FilterControls filters={filters} onFilterChange={handleFilterChange} />
       {filteredAndSortedData.length > 0 ? (
-        <BenchmarkTable data={filteredAndSortedData} onSort={handleSort} sortConfig={sortConfig} />
+        <>
+          <BenchmarkTable data={filteredAndSortedData} onSort={handleSort} sortConfig={sortConfig} />
+          <BenchmarkGraph benchmarkData={filteredAndSortedData} />
+        </>
       ) : (
         <p>No data matches your current filters, or no data is available.</p>
       )}
