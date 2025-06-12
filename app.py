@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import pandas as pd # Though pandas might not be heavily used by current functions
 
@@ -94,6 +94,71 @@ def get_benchmarks():
         print(f"INFO: API /api/benchmarks is serving {len(benchmark_data)} records.")
     print("--- API endpoint /api/benchmarks request complete ---")
     return jsonify(benchmark_data)
+
+
+@app.route('/api/benchmarks/add', methods=['POST'])
+def add_benchmark_data():
+    try:
+        data = request.get_json()
+    except Exception as e:
+        return jsonify({"error": f"Invalid JSON: {str(e)}"}), 400
+
+    dataset_details = data.get('dataset_details')
+    if not dataset_details or 'type' not in dataset_details:
+        return jsonify({"error": "Invalid input: dataset_details.type is required"}), 400
+
+    dataset_type = dataset_details['type']
+    if dataset_type == "OCR":
+        filename = "ocr_benchmark_data.json"
+    elif dataset_type == "Checkerboard":
+        filename = "checkerboard_benchmark_data.json"
+    else:
+        return jsonify({"error": "Invalid input: dataset_details.type must be 'OCR' or 'Checkerboard'"}), 400
+
+    filepath = os.path.join(DATA_DIR, filename)
+
+    try:
+        if os.path.exists(filepath):
+            with open(filepath, 'r') as f:
+                try:
+                    benchmark_list = json.load(f)
+                    if not isinstance(benchmark_list, list):
+                        # If file exists but not a list, start fresh, or handle as error
+                        # For this requirement, we'll re-initialize as an empty list
+                        # and log a warning, though an error might be more appropriate in some cases.
+                        print(f"WARNING: File {filepath} did not contain a list. Re-initializing.")
+                        benchmark_list = []
+                except json.JSONDecodeError:
+                    # If file exists but is invalid JSON, start fresh
+                    print(f"WARNING: File {filepath} contained invalid JSON. Re-initializing.")
+                    benchmark_list = []
+        else:
+            benchmark_list = []
+
+        # Append the new benchmark entry (which is the entire received JSON data)
+        benchmark_list.append(data)
+
+        with open(filepath, 'w') as f:
+            json.dump(benchmark_list, f, indent=4)
+
+        return jsonify({"message": "Benchmark data added successfully"}), 201
+
+    except FileNotFoundError:
+        # This case should ideally be covered by the os.path.exists check and initialization
+        # but as a safeguard for other potential OS errors during read/write:
+        return jsonify({"error": f"File error for {filename}. Check server logs."}), 500
+    except json.JSONDecodeError as e:
+        # This would catch errors during the json.load if the file was corrupted between check and read
+        return jsonify({"error": f"Error decoding JSON from {filename}: {str(e)}"}), 500
+    except IOError as e:
+        # Catch broader I/O errors, e.g., permission issues
+        return jsonify({"error": f"IOError accessing file {filename}: {str(e)}"}), 500
+    except Exception as e:
+        # Catch-all for other unexpected errors
+        # Log this error on the server for diagnosis
+        print(f"ERROR: Unexpected error in /api/benchmarks/add: {str(e)}")
+        return jsonify({"error": "An unexpected server error occurred"}), 500
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
