@@ -131,6 +131,15 @@ There are two main ways to run the application:
 
 The application will automatically load any \`*.json\` files from the \`data/\` directory when the API is called.
 
+## Mock Data Generation
+
+If the \`data/\` directory is empty or contains no valid \`.json\` benchmark files, the application will automatically generate and serve a set of mock benchmark data. This feature is intended for:
+
+-   **Demonstration purposes**: Allowing users to see the application's functionality without needing to provide their own data immediately.
+-   **Initial setup testing**: Verifying that the frontend and backend are communicating correctly.
+
+The mock data is dynamically created with plausible, but random, values for various algorithms and datasets, adhering to the expected data format. If you add your own valid JSON files to the \`data/\` directory, the application will prioritize and serve your data instead of the mock data.
+
 ## Data Format
 
 Refer to \`DATA_FORMAT.md\` for a detailed description of the expected JSON structure for benchmark data files. The React frontend is configured to display key metrics from this format. If you add entirely new metric *types* (beyond what's in \`DATA_FORMAT.md\`), you may need to update the \`columnConfig\` in \`frontend/src/components/BenchmarkTable.jsx\` to ensure they are displayed.
