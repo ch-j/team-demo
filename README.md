@@ -131,14 +131,15 @@ There are two main ways to run the application:
 
 The application will automatically load any \`*.json\` files from the \`data/\` directory when the API is called.
 
-## Mock Data Generation
+## Default Mock Data
 
-If the \`data/\` directory is empty or contains no valid \`.json\` benchmark files, the application will automatically generate and serve a set of mock benchmark data. This feature is intended for:
+The application includes a default set of mock benchmark data stored in \`data/default_mock_data.json\`. This data is served by the API if no other user-provided \`.json\` files are found in the \`data/\` directory.
 
--   **Demonstration purposes**: Allowing users to see the application's functionality without needing to provide their own data immediately.
--   **Initial setup testing**: Verifying that the frontend and backend are communicating correctly.
+This feature allows you to:
+-   See the application's functionality immediately after setup.
+-   Have a baseline dataset for testing or demonstration if you haven't added your own data yet.
 
-The mock data is dynamically created with plausible, but random, values for various algorithms and datasets, adhering to the expected data format. If you add your own valid JSON files to the \`data/\` directory, the application will prioritize and serve your data instead of the mock data.
+You can customize this default dataset by modifying or replacing the \`data/default_mock_data.json\` file with your own records, ensuring they adhere to the structure specified in \`DATA_FORMAT.md\`. If you add other \`.json\` files to the \`data/\` directory, those files will be loaded and served instead of \`default_mock_data.json\`.
 
 ## Data Format
 

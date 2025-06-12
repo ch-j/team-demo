@@ -1,0 +1,145 @@
+[
+  {
+    "id": "default-mock-001",
+    "algorithm_name": "DefaultAlgo_OCR",
+    "algorithm_version": "1.0.0",
+    "dataset_name": "DefaultOCR_SampleSet",
+    "dataset_details": {
+      "type": "OCR",
+      "image_count": 10,
+      "description": "Default sample set for OCR tasks."
+    },
+    "execution_environment": {
+      "cpu": "Standard CPU",
+      "gpu": "N/A",
+      "ram_gb": 8,
+      "os": "Standard OS"
+    },
+    "benchmark_run_date": "2024-01-01T10:00:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 25.5,
+      "processing_time_seconds_per_unit": 2.55,
+      "units_per_second": 0.39
+    },
+    "accuracy_metrics": {
+      "character_error_rate": 0.08,
+      "word_error_rate": 0.15,
+      "exact_match_accuracy": 0.65
+    },
+    "additional_notes": "This is a default mock OCR benchmark record."
+  },
+  {
+    "id": "default-mock-002",
+    "algorithm_name": "DefaultAlgo_Detection",
+    "algorithm_version": "1.1.0",
+    "dataset_name": "DefaultDetection_SampleSet",
+    "dataset_details": {
+      "type": "Detection",
+      "image_count": 20,
+      "description": "Default sample set for detection tasks."
+    },
+    "execution_environment": {
+      "cpu": "Standard CPU",
+      "gpu": "Standard GPU",
+      "ram_gb": 16,
+      "os": "Standard OS"
+    },
+    "benchmark_run_date": "2024-01-02T11:30:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 60.0,
+      "processing_time_seconds_per_unit": 3.0,
+      "units_per_second": 0.33
+    },
+    "accuracy_metrics": {
+      "detection_rate": 0.92,
+      "average_corner_distance_error_pixels": 2.5,
+      "mean_average_precision": 0.75
+    },
+    "additional_notes": "This is a default mock detection benchmark record."
+  },
+  {
+    "id": "default-mock-003",
+    "algorithm_name": "AnotherDefault_OCR",
+    "algorithm_version": "0.9.0",
+    "dataset_name": "DefaultOCR_AlternateSet",
+    "dataset_details": {
+      "type": "OCR",
+      "image_count": 15,
+      "description": "Alternative default sample set for OCR."
+    },
+    "execution_environment": {
+      "cpu": "Standard CPU",
+      "gpu": "N/A",
+      "ram_gb": 8,
+      "os": "Standard OS"
+    },
+    "benchmark_run_date": "2024-01-03T14:15:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 35.0,
+      "processing_time_seconds_per_unit": 2.33,
+      "units_per_second": 0.43
+    },
+    "accuracy_metrics": {
+      "character_error_rate": 0.10,
+      "word_error_rate": 0.18,
+      "exact_match_accuracy": 0.60
+    },
+    "additional_notes": "Another default mock OCR record."
+  },
+  {
+    "id": "default-mock-004",
+    "algorithm_name": "DefaultAlgo_Generic",
+    "algorithm_version": "2.0.0",
+    "dataset_name": "DefaultGeneric_Benchmark",
+    "dataset_details": {
+      "type": "General",
+      "image_count": 50,
+      "description": "Default sample set for general vision tasks."
+    },
+    "execution_environment": {
+      "cpu": "Advanced CPU",
+      "gpu": "Advanced GPU",
+      "ram_gb": 32,
+      "os": "Standard OS"
+    },
+    "benchmark_run_date": "2024-01-04T16:00:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 120.5,
+      "processing_time_seconds_per_unit": 2.41,
+      "units_per_second": 0.415
+    },
+    "accuracy_metrics": {
+      "mean_average_precision": 0.80,
+      "f1_score": 0.78
+    },
+    "additional_notes": "This is a default mock generic benchmark record."
+  },
+  {
+    "id": "default-mock-005",
+    "algorithm_name": "FastDefault_Checker",
+    "algorithm_version": "1.0.1",
+    "dataset_name": "DefaultCheckerboard_Set",
+    "dataset_details": {
+      "type": "Checkerboard",
+      "image_count": 30,
+      "description": "Default sample set for checkerboard detection."
+    },
+    "execution_environment": {
+      "cpu": "Standard CPU",
+      "gpu": "N/A",
+      "ram_gb": 16,
+      "os": "Standard OS"
+    },
+    "benchmark_run_date": "2024-01-05T09:00:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 15.0,
+      "processing_time_seconds_per_unit": 0.5,
+      "units_per_second": 2.0
+    },
+    "accuracy_metrics": {
+      "detection_rate": 0.98,
+      "average_reprojection_error_pixels": 0.6
+    },
+    "additional_notes": "This is a default mock checkerboard detection record."
+  }
+]

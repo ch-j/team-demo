@@ -1,7 +1,6 @@
 import os
 import json
-import random # For mock data
-from datetime import datetime, timedelta # For mock data
+# random and datetime, timedelta are no longer needed for mock data generation here
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 import pandas as pd # Though pandas might not be heavily used by current functions
@@ -10,104 +9,76 @@ app = Flask(__name__, static_folder='frontend/dist/assets')
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+DEFAULT_MOCK_FILE = "default_mock_data.json"
 
 def load_benchmark_data(data_dir):
-    all_data = []
+    user_data_loaded = []
+    user_files_found = False
+
     if not os.path.exists(data_dir):
         print(f"WARNING: Data directory '{data_dir}' not found at '{os.path.abspath(data_dir)}'.")
-        return all_data
+        # Try to load default mock data even if DATA_DIR itself is missing, assuming it might be in a known path
+        # However, for consistency, let's assume default_mock_data.json should also be in data_dir.
+        # So if data_dir doesn't exist, nothing can be loaded.
+        return []
 
-    print(f"INFO: Loading real data from: {os.path.abspath(data_dir)}")
+    print(f"INFO: Scanning for user-provided data in: {os.path.abspath(data_dir)}")
     for filename in os.listdir(data_dir):
-        if filename.endswith('.json'):
+        if filename.endswith('.json') and filename != DEFAULT_MOCK_FILE:
+            user_files_found = True
             filepath = os.path.join(data_dir, filename)
             try:
                 with open(filepath, 'r') as f:
                     data = json.load(f)
                     if isinstance(data, list):
-                        all_data.extend(data)
+                        print(f"INFO: Successfully loaded user data from '{filename}'.")
+                        user_data_loaded.extend(data)
                     else:
-                        print(f"WARNING: JSON file '{filename}' does not contain a list of records at its root. Skipping.")
+                        print(f"WARNING: User JSON file '{filename}' does not contain a list. Skipping.")
             except json.JSONDecodeError as e:
-                print(f"ERROR: Error decoding JSON from file '{filename}': {e}")
+                print(f"ERROR: Error decoding JSON from user file '{filename}': {e}")
             except Exception as e:
-                print(f"ERROR: An unexpected error occurred while processing file '{filename}': {e}")
-    return all_data
+                print(f"ERROR: An unexpected error occurred while processing user file '{filename}': {e}")
 
-def generate_mock_benchmark_data(num_records=8):
-    mock_data = []
+    if user_data_loaded:
+        print("INFO: Serving combined user-provided data.")
+        return user_data_loaded
 
-    algo_prefixes = ["Opti", "Quick", "Deep", "Vision", "Accu", "Fast", "Robo", "AI"]
-    algo_suffixes = ["Scan", "Detect", "Flow", "Net", "Read", "Check", "Segment", "Classify"]
+    # If no user data was loaded, or no user files (other than default) were found
+    if not user_files_found: # This condition means only default_mock_data.json could be there, or dir is empty of other jsons
+        print(f"INFO: No user-provided data files found or loaded. Attempting to load '{DEFAULT_MOCK_FILE}'.")
+    else: # User files were found but perhaps all were invalid or empty lists
+        print(f"INFO: User-provided data files were found but resulted in no data. Attempting to load '{DEFAULT_MOCK_FILE}'.")
 
-    dataset_prefixes = ["City", "Indoor", "Rural", "Synth", "Street", "Docu", "Bio", "Aerial"]
-    dataset_suffixes = ["HD", "LowLight", "Noisy", "Clean", "V2", "Alpha", "Beta", "Final"]
+    default_mock_filepath = os.path.join(data_dir, DEFAULT_MOCK_FILE)
+    if os.path.exists(default_mock_filepath):
+        try:
+            with open(default_mock_filepath, 'r') as f:
+                default_data = json.load(f)
+                if isinstance(default_data, list):
+                    print(f"INFO: Successfully loaded '{DEFAULT_MOCK_FILE}'.")
+                    return default_data
+                else:
+                    print(f"WARNING: '{DEFAULT_MOCK_FILE}' does not contain a list. Cannot serve default mock data.")
+        except json.JSONDecodeError as e:
+            print(f"ERROR: Error decoding JSON from '{DEFAULT_MOCK_FILE}': {e}")
+        except Exception as e:
+            print(f"ERROR: An unexpected error occurred while processing '{DEFAULT_MOCK_FILE}': {e}")
+    else:
+        print(f"INFO: '{DEFAULT_MOCK_FILE}' not found. No data will be served.")
 
-    for i in range(num_records):
-        algo_name = f"{random.choice(algo_prefixes)}{random.choice(algo_suffixes)}"
-        dataset_name = f"{random.choice(dataset_prefixes)}{random.choice(dataset_suffixes)}"
-
-        run_date = datetime.utcnow() - timedelta(days=random.randint(0, 365), hours=random.randint(0,23), minutes=random.randint(0,59))
-
-        image_count = random.randint(10, 100)
-        total_time = round(random.uniform(10.0, 300.0), 2)
-        units_per_sec = round(random.uniform(0.1, 100.0), 2)
-        time_per_unit = round(total_time / image_count, 3) if image_count > 0 else 0
-
-        accuracy_metrics = {}
-        dataset_type = "General"
-
-        # Determine type for more relevant metrics
-        if any(s.lower() in algo_name.lower() for s in ["Read", "Scan", "OCR"])):
-            dataset_type = "OCR"
-            accuracy_metrics["character_error_rate"] = round(random.uniform(0.01, 0.20), 3)
-            accuracy_metrics["word_error_rate"] = round(random.uniform(0.05, 0.30), 3)
-            accuracy_metrics["exact_match_accuracy"] = round(random.uniform(0.5, 0.9), 3)
-        elif any(s.lower() in algo_name.lower() for s in ["Detect", "Check", "Segment", "Classify"])):
-            dataset_type = "Detection"
-            accuracy_metrics["detection_rate"] = round(random.uniform(0.70, 0.99), 3)
-            accuracy_metrics["average_corner_distance_error_pixels"] = round(random.uniform(0.5, 5.0), 2)
-        else:
-            accuracy_metrics["mean_average_precision"] = round(random.uniform(0.6, 0.95), 3) # A general metric
-
-        record = {
-            "id": f"mock-item-{i+1}-{random.randint(1000,9999)}", # Unique ID for React keys
-            "algorithm_name": algo_name,
-            "algorithm_version": f"1.{random.randint(0,9)}.{random.randint(0,9)}",
-            "dataset_name": dataset_name,
-            "dataset_details": {
-                "type": dataset_type,
-                "image_count": image_count,
-                "description": f"Mocked {dataset_type.lower()} dataset for {dataset_name}"
-            },
-            "execution_environment": {
-                "cpu": "MockCPU v1",
-                "gpu": random.choice(["MockGPU v1", "N/A"]),
-                "ram_gb": random.choice([8, 16, 32]),
-                "os": "MockOS vMajor.Minor"
-            },
-            "benchmark_run_date": run_date.isoformat(timespec='seconds') + 'Z',
-            "speed_metrics": {
-                "processing_time_seconds_total": total_time,
-                "processing_time_seconds_per_unit": time_per_unit,
-                "units_per_second": units_per_sec
-            },
-            "accuracy_metrics": accuracy_metrics,
-            "additional_notes": f"This is auto-generated mock data record #{i+1}."
-        }
-        mock_data.append(record)
-    return mock_data
+    return [] # Return empty if no user data and default mock also fails or not found
 
 @app.route('/api/benchmarks')
 def get_benchmarks():
     """
     API endpoint to get all benchmark data.
-    If no real data is found, serves mock data.
+    Prioritizes user data; falls back to default_mock_data.json if no user data.
     """
     benchmark_data = load_benchmark_data(DATA_DIR)
+    # Log message about what's being served is now handled within load_benchmark_data
     if not benchmark_data:
-        print("INFO: No real benchmark data found in data/ directory. Serving generated mock data.")
-        benchmark_data = generate_mock_benchmark_data() # Default 8 records
+        print("INFO: API is serving an empty list as no user data or default mock data could be loaded.")
     return jsonify(benchmark_data)
 
 @app.route('/', defaults={'path': ''})
