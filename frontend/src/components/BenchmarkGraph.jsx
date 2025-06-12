@@ -35,19 +35,21 @@ function BenchmarkGraph({ benchmarkData }) {
       setAvailableMetrics([]);
       setSelectedMetric('');
     }
-  }, [benchmarkData, selectedMetric]);
+  }, [benchmarkData, selectedMetric]); // Keep selectedMetric dependency to ensure it updates if availableMetrics change
 
   useEffect(() => {
-    // Ensure mountRef.current is available for width/height calculations and appending renderer
-    if (!mountRef.current) return;
+    const currentMount = mountRef.current; // Capture for use in this effect and its cleanup
 
-    // If no data or selections, clear canvas and don't render scene
+    if (!currentMount) return;
+
     if (!benchmarkData || benchmarkData.length === 0 || !selectedMetric || !selectedBenchmarkAxis) {
-      // Clear previous renderer if it exists
-      if (mountRef.current.firstChild) {
-        mountRef.current.removeChild(mountRef.current.firstChild);
-      }
-      // Optionally, clear scene objects if you want to be thorough even when not rendering
+      // If no data or selections, ensure the mount point is clear.
+      // The main effect's cleanup (from a previous render with data) should handle its own canvas.
+      // If this is the initial render or if data disappears, we want the placeholder message to show,
+      // which is outside the mountRef. So, clearing mountRef ensures no old canvas lingers.
+      currentMount.innerHTML = '';
+
+      // Optionally, also clear Three.js scene objects if they persist via sceneRef
       if (sceneRef.current) {
         const objectsToRemove = [];
         sceneRef.current.traverse(child => { if (child.isMesh || child.isAxesHelper) objectsToRemove.push(child); });
@@ -63,7 +65,7 @@ function BenchmarkGraph({ benchmarkData }) {
       return;
     }
 
-
+    // Scene setup (or clearing existing objects)
     if (!sceneRef.current) {
         sceneRef.current = new THREE.Scene();
         sceneRef.current.background = new THREE.Color(0xf0f0f0);
@@ -81,14 +83,13 @@ function BenchmarkGraph({ benchmarkData }) {
     }
     const scene = sceneRef.current;
 
-    const camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, currentMount.clientWidth / currentMount.clientHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
 
-    if (mountRef.current.firstChild) {
-        mountRef.current.removeChild(mountRef.current.firstChild);
-    }
-    mountRef.current.appendChild(renderer.domElement);
+    // Robustly clear the mount point and append the new canvas
+    currentMount.innerHTML = '';
+    currentMount.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -123,7 +124,7 @@ function BenchmarkGraph({ benchmarkData }) {
     const dynamicScaleFactor = maxMetricValue > 0 ? (10 / maxMetricValue) : Y_AXIS_SCALE_FACTOR;
 
     processedData.forEach((dataPoint, index) => {
-      const barHeight = Math.max(0.01, dataPoint.value * dynamicScaleFactor); // Ensure bar height is not zero or negative
+      const barHeight = Math.max(0.01, dataPoint.value * dynamicScaleFactor);
       const geometry = new THREE.BoxGeometry(BAR_WIDTH, barHeight, BAR_DEPTH);
       const material = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff });
       const bar = new THREE.Mesh(geometry, material);
@@ -134,8 +135,8 @@ function BenchmarkGraph({ benchmarkData }) {
 
     const numBars = uniqueXValues.length;
     camera.position.x = 0;
-    camera.position.y = Math.max(5, maxMetricValue * dynamicScaleFactor * 0.75); // Adjusted y position
-    camera.position.z = Math.max(numBars * BAR_SPACING * 0.7, 10); // Adjusted z position
+    camera.position.y = Math.max(5, maxMetricValue * dynamicScaleFactor * 0.75);
+    camera.position.z = Math.max(numBars * BAR_SPACING * 0.7, 10);
     const lookAtY = Math.max(0, maxMetricValue * dynamicScaleFactor / 3);
     camera.lookAt(0, lookAtY, 0);
     controls.target.set(0, lookAtY, 0);
@@ -145,17 +146,29 @@ function BenchmarkGraph({ benchmarkData }) {
       controls.update();
       renderer.render(scene, camera);
     };
-    animate();
+    animate(); // Call animate to start the loop
+
+    // Store handle for cleanup
+    const animationFrameId = requestAnimationFrame(animate);
+
 
     return () => {
       console.log("Cleaning up three.js resources for BenchmarkGraph");
+      cancelAnimationFrame(animationFrameId); // Stop animation loop
       controls.dispose();
       renderer.dispose();
-      if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
-        mountRef.current.removeChild(renderer.domElement);
+      // Only remove the specific domElement created by this effect run, if it's still part of currentMount
+      if (currentMount && currentMount.contains(renderer.domElement)) {
+        currentMount.removeChild(renderer.domElement);
       }
+      // Note: scene objects are cleared at the beginning of the effect if sceneRef.current exists.
+      // If the component unmounts entirely, sceneRef.current might still hold references.
+      // A more thorough cleanup for full component unmount might involve:
+      // if (sceneRef.current) { /* dispose all geometries, materials, textures in sceneRef.current */ }
+      // sceneRef.current = null;
+      // However, the current approach of clearing at the start of the effect handles re-renders well.
     };
-  }, [benchmarkData, selectedMetric, selectedBenchmarkAxis, mountRef.current]); // Added mountRef.current as dependency
+  }, [benchmarkData, selectedMetric, selectedBenchmarkAxis]); // Removed mountRef.current from dependencies
 
   const handleMetricChange = (event) => {
     setSelectedMetric(event.target.value);
@@ -185,11 +198,7 @@ function BenchmarkGraph({ benchmarkData }) {
           </select>
         </div>
       </div>
-      <div ref={mountRef} className="graph-canvas-container" style={{
-          /* Inline style for height can be kept if dynamic, otherwise use CSS */
-          /* width: '100%' is handled by CSS */
-          /* border: '1px solid #ccc' is handled by CSS */
-        }}>
+      <div ref={mountRef} className="graph-canvas-container">
         {(!benchmarkData || benchmarkData.length === 0 || !selectedMetric || !selectedBenchmarkAxis) &&
           <p>No data available to display for the selected graph parameters.</p>
         }
