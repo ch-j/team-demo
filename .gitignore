@@ -1,0 +1,6 @@
+
+# Node.js/Vite specific for frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.DS_Store

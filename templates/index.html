@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision Benchmark Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Computer Vision Algorithm Benchmarks</h1>
+
+    <div class="filters">
+        <input type="text" id="filterAlgorithm" placeholder="Filter by Algorithm Name...">
+        <input type="text" id="filterDataset" placeholder="Filter by Dataset Name...">
+    </div>
+
+    <table id="benchmark-table">
+        <thead>
+            <tr>
+                <!-- Headers will be dynamically inserted here by JavaScript -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data rows will be dynamically inserted here -->
+        </tbody>
+    </table>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

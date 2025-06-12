@@ -1,0 +1,58 @@
+[
+  {
+    "algorithm_name": "OpenCV_Checkerboard",
+    "algorithm_version": "4.7.0",
+    "dataset_name": "LowRes_Checker_8x6",
+    "dataset_details": {
+      "type": "Checkerboard",
+      "image_count": 100,
+      "description": "Low resolution images of an 8x6 checkerboard."
+    },
+    "execution_environment": {
+      "cpu": "AMD Ryzen 5 5600X",
+      "gpu": "N/A",
+      "ram_gb": 16,
+      "os": "Windows 11"
+    },
+    "benchmark_run_date": "2023-11-01T09:20:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 30.0,
+      "processing_time_seconds_per_unit": 0.3,
+      "units_per_second": 3.33
+    },
+    "accuracy_metrics": {
+      "detection_rate": 0.95,
+      "average_corner_distance_error_pixels": 1.5,
+      "average_reprojection_error_pixels": 0.8
+    },
+    "additional_notes": "Good detection rate on low resolution."
+  },
+  {
+    "algorithm_name": "OpenCV_Checkerboard",
+    "algorithm_version": "4.7.0",
+    "dataset_name": "HighRes_Checker_10x7_Blur",
+    "dataset_details": {
+      "type": "Checkerboard",
+      "image_count": 75,
+      "description": "High resolution images of a 10x7 checkerboard with motion blur."
+    },
+    "execution_environment": {
+      "cpu": "AMD Ryzen 5 5600X",
+      "gpu": "N/A",
+      "ram_gb": 16,
+      "os": "Windows 11"
+    },
+    "benchmark_run_date": "2023-11-02T15:45:00Z",
+    "speed_metrics": {
+      "processing_time_seconds_total": 40.5,
+      "processing_time_seconds_per_unit": 0.54,
+      "units_per_second": 1.85
+    },
+    "accuracy_metrics": {
+      "detection_rate": 0.82,
+      "average_corner_distance_error_pixels": 2.1,
+      "average_reprojection_error_pixels": 1.2
+    },
+    "additional_notes": "Motion blur reduces detection rate and accuracy."
+  }
+]
