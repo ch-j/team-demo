@@ -35,21 +35,15 @@ function BenchmarkGraph({ benchmarkData }) {
       setAvailableMetrics([]);
       setSelectedMetric('');
     }
-  }, [benchmarkData, selectedMetric]); // Keep selectedMetric dependency to ensure it updates if availableMetrics change
+  }, [benchmarkData, selectedMetric]);
 
   useEffect(() => {
-    const currentMount = mountRef.current; // Capture for use in this effect and its cleanup
+    const currentMount = mountRef.current;
 
     if (!currentMount) return;
 
     if (!benchmarkData || benchmarkData.length === 0 || !selectedMetric || !selectedBenchmarkAxis) {
-      // If no data or selections, ensure the mount point is clear.
-      // The main effect's cleanup (from a previous render with data) should handle its own canvas.
-      // If this is the initial render or if data disappears, we want the placeholder message to show,
-      // which is outside the mountRef. So, clearing mountRef ensures no old canvas lingers.
       currentMount.innerHTML = '';
-
-      // Optionally, also clear Three.js scene objects if they persist via sceneRef
       if (sceneRef.current) {
         const objectsToRemove = [];
         sceneRef.current.traverse(child => { if (child.isMesh || child.isAxesHelper) objectsToRemove.push(child); });
@@ -65,7 +59,6 @@ function BenchmarkGraph({ benchmarkData }) {
       return;
     }
 
-    // Scene setup (or clearing existing objects)
     if (!sceneRef.current) {
         sceneRef.current = new THREE.Scene();
         sceneRef.current.background = new THREE.Color(0xf0f0f0);
@@ -87,7 +80,6 @@ function BenchmarkGraph({ benchmarkData }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
 
-    // Robustly clear the mount point and append the new canvas
     currentMount.innerHTML = '';
     currentMount.appendChild(renderer.domElement);
 
@@ -141,34 +133,34 @@ function BenchmarkGraph({ benchmarkData }) {
     camera.lookAt(0, lookAtY, 0);
     controls.target.set(0, lookAtY, 0);
 
-    const animate = () => {
-      requestAnimationFrame(animate);
+    let animationFrameId;
+    const animateLoop = () => {
       controls.update();
       renderer.render(scene, camera);
+      animationFrameId = requestAnimationFrame(animateLoop);
     };
-    animate(); // Call animate to start the loop
 
-    // Store handle for cleanup
-    const animationFrameId = requestAnimationFrame(animate);
+    // Start the animation loop.
+    // Ensure it's only started if clientWidth and clientHeight are positive,
+    // as renderer.render can cause issues if dimensions are zero.
+    if (currentMount.clientWidth > 0 && currentMount.clientHeight > 0) {
+        animateLoop();
+    } else {
+        console.warn("BenchmarkGraph: mount point has zero dimensions. Animation loop not started.");
+    }
 
 
     return () => {
       console.log("Cleaning up three.js resources for BenchmarkGraph");
-      cancelAnimationFrame(animationFrameId); // Stop animation loop
+      cancelAnimationFrame(animationFrameId);
       controls.dispose();
       renderer.dispose();
-      // Only remove the specific domElement created by this effect run, if it's still part of currentMount
-      if (currentMount && currentMount.contains(renderer.domElement)) {
+      // Refined check for removing renderer.domElement
+      if (currentMount && renderer.domElement.parentNode === currentMount) {
         currentMount.removeChild(renderer.domElement);
       }
-      // Note: scene objects are cleared at the beginning of the effect if sceneRef.current exists.
-      // If the component unmounts entirely, sceneRef.current might still hold references.
-      // A more thorough cleanup for full component unmount might involve:
-      // if (sceneRef.current) { /* dispose all geometries, materials, textures in sceneRef.current */ }
-      // sceneRef.current = null;
-      // However, the current approach of clearing at the start of the effect handles re-renders well.
     };
-  }, [benchmarkData, selectedMetric, selectedBenchmarkAxis]); // Removed mountRef.current from dependencies
+  }, [benchmarkData, selectedMetric, selectedBenchmarkAxis]);
 
   const handleMetricChange = (event) => {
     setSelectedMetric(event.target.value);
