@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import BenchmarkTable from './components/BenchmarkTable';
 import FilterControls from './components/FilterControls';
-import BenchmarkGraph from './components/BenchmarkGraph'; // Import BenchmarkGraph
+import LineChartDisplay from './components/LineChartDisplay'; // Import LineChartDisplay
 // import './style.css'; // Will be handled in styling step
 
 // Helper to get nested values from an object based on a dot-separated path string
@@ -25,6 +25,16 @@ function App() {
   // Initialize sortConfig with a default sort, e.g., by algorithm name
   const [sortConfig, setSortConfig] = useState({ key: 'algorithm_name', direction: 'ascending' });
 
+  // State for chart controls
+  const [chartMetric, setChartMetric] = useState('');
+  const [chartXAxisKey, setChartXAxisKey] = useState('dataset_name'); // Default X-axis
+  const [chartSeriesKey, setChartSeriesKey] = useState('algorithm_name'); // Default series
+  const [availableChartMetrics, setAvailableChartMetrics] = useState([]);
+
+  // Predefined keys for X-Axis and Series for chart controls
+  const availableXAxisKeys = ['dataset_name', 'benchmark_run_date', 'algorithm_version', 'algorithm_name'];
+  const availableSeriesKeys = ['algorithm_name', 'dataset_name', 'algorithm_version'];
+
 
   useEffect(() => {
     setIsLoading(true);
@@ -39,6 +49,38 @@ function App() {
         setIsLoading(false);
       });
   }, []);
+
+  // Effect to populate availableChartMetrics from allData
+  useEffect(() => {
+    if (allData && allData.length > 0) {
+      const firstItem = allData[0];
+      const metrics = [];
+      if (firstItem.speed_metrics) {
+        Object.keys(firstItem.speed_metrics).forEach(key => {
+          if (typeof firstItem.speed_metrics[key] === 'number') { // Ensure metric is a number
+            metrics.push(`speed_metrics.${key}`);
+          }
+        });
+      }
+      if (firstItem.accuracy_metrics) {
+        Object.keys(firstItem.accuracy_metrics).forEach(key => {
+          if (typeof firstItem.accuracy_metrics[key] === 'number') { // Ensure metric is a number
+            metrics.push(`accuracy_metrics.${key}`);
+          }
+        });
+      }
+      setAvailableChartMetrics(metrics);
+      // Set default chartMetric if current one is not available or empty
+      if (metrics.length > 0 && (!chartMetric || !metrics.includes(chartMetric))) {
+        setChartMetric(metrics[0]);
+      } else if (metrics.length === 0) {
+        setChartMetric(''); // No numeric metrics available
+      }
+    } else {
+      setAvailableChartMetrics([]);
+      setChartMetric('');
+    }
+  }, [allData, chartMetric]); // Include chartMetric to re-evaluate if it becomes invalid
 
   const filteredAndSortedData = useMemo(() => {
     let data = [...allData];
@@ -104,14 +146,34 @@ function App() {
   return (
     <div className="App">
       <h1>Computer Vision Algorithm Benchmarks (React)</h1>
-      <FilterControls filters={filters} onFilterChange={handleFilterChange} />
+      <FilterControls
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        // Chart related props
+        chartMetric={chartMetric}
+        setChartMetric={setChartMetric}
+        availableChartMetrics={availableChartMetrics}
+        chartXAxisKey={chartXAxisKey}
+        setChartXAxisKey={setChartXAxisKey}
+        availableXAxisKeys={availableXAxisKeys}
+        chartSeriesKey={chartSeriesKey}
+        setChartSeriesKey={setChartSeriesKey}
+        availableSeriesKeys={availableSeriesKeys}
+      />
       {filteredAndSortedData.length > 0 ? (
-        <>
-          <BenchmarkTable data={filteredAndSortedData} onSort={handleSort} sortConfig={sortConfig} />
-          <BenchmarkGraph benchmarkData={filteredAndSortedData} />
-        </>
+        <BenchmarkTable data={filteredAndSortedData} onSort={handleSort} sortConfig={sortConfig} />
       ) : (
         <p>No data matches your current filters, or no data is available.</p>
+      )}
+
+      {/* Conditionally render LineChartDisplay */}
+      {filteredAndSortedData.length > 0 && chartMetric && chartXAxisKey && chartSeriesKey && (
+        <LineChartDisplay
+          data={filteredAndSortedData}
+          metricKey={chartMetric}
+          xAxisKey={chartXAxisKey}
+          seriesKey={chartSeriesKey}
+        />
       )}
     </div>
   );
