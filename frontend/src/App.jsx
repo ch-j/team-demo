@@ -38,7 +38,7 @@ function App() {
 
   useEffect(() => {
     setIsLoading(true);
-    axios.get('/api/benchmarks')
+    axios.get('http://localhost:5000/api/benchmarks')
       .then(response => {
         setAllData(response.data || []); // Ensure response.data is an array
         setIsLoading(false);
